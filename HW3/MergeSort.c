@@ -5,6 +5,8 @@
 #include <sys/ipc.h>
 #include <sys/shm.h>
 
+void fillData(int a[], int);
+
 int main()
 {
     const int ARRAY_SIZE = 1000;
@@ -29,9 +31,7 @@ int main()
     // shmat to attach to shared memory
     int *array = (int*) shmat(shmid,(void*)0,0);
 
-    array[0] = 1;
-    array[100] = 22;
-    array[999] = 333;
+    fillData(array, ARRAY_SIZE) ;
     printf("%d\n%d\n%d\n" , array[0], array[100] , array[999]);
 
     //detach from shared memory
@@ -43,3 +43,12 @@ int main()
     printf("%d\n" , shmid);
     return 0;
 }
+
+void fillData(int a[], int len) 
+{ 
+	// Create random arrays 
+	int i; 
+	for (i=0; i<len; i++) 
+		a[i] = rand()%300; 
+	return; 
+} 
