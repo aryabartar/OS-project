@@ -60,7 +60,7 @@ void mergeSort (int *array, int l , int r)
 {
     int array_length = r-l+1;
     printf("l is %d| r is %d\n" , l , r);
-    if (r <= l)
+    if (r <= l + 1)
     {
         return; 
     }
