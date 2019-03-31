@@ -6,16 +6,18 @@
 #include <sys/ipc.h>
 #include <sys/shm.h>
 #include <sys/wait.h>
-#include<time.h> 
+#include <time.h> 
 
 
 void fillData(int a[], int);
 void mergeSort (int *, int l , int r);
 void merge(int array[], int , int , int );
 
+const int M = 5; 
+
 int main()
 {
-    const int ARRAY_SIZE = 5;
+    const int ARRAY_SIZE = 20;
     
 
     int shmid;
@@ -76,43 +78,37 @@ void mergeSort (int *array, int l , int r)
         return; 
     }
 
-    int lfork_status, rfork_status;
-    lfork_status = fork();
-    printf ("Left forked\n");
-
-    if (lfork_status < 0)
+    if (array_length < M) 
     {
-        perror("Error while making left fork.");
-        exit(-1);
-    } 
-    else if (lfork_status == 0) //this is child
-    {
+        printf("Using normal mode.\n");
         mergeSort(array, l , l+array_length/2 -1);
-        exit(0);
+        mergeSort(array, l+array_length/2  ,r);
     }
-    else  // parent 
+    else 
     {
-        rfork_status = fork();
-        printf ("Right forked\n");
+        printf("Using fork.\n");
+        int lfork_status, rfork_status;
+        lfork_status = fork();
 
-        if (rfork_status < 0)
+        if (lfork_status == 0) //this is child
         {
-            perror("Error while making right fork.");
-            exit(-1);
-        } 
-        else if (rfork_status == 0) //this is child
-        {
-            mergeSort(array, l+array_length/2 , r);
+            mergeSort(array, l , l+array_length/2 -1);
             exit(0);
         }
+        else  // parent 
+        {
+            rfork_status = fork();
+
+            if (rfork_status == 0) //this is child
+            {
+                mergeSort(array, l+array_length/2 , r);
+                exit(0);
+            }
+        }
+
+        waitpid(lfork_status, 0, 0); 
+        waitpid(rfork_status, 0, 0); 
     }
-
-	int status; 
-
-    // Wait for child processes to finish 
-	waitpid(lfork_status, 0, 0); 
-	waitpid(rfork_status, 0, 0); 
-    
     merge(array , l , l+array_length/2 -1 , r);
 }
 
@@ -160,5 +156,5 @@ void merge(int arr[], int l, int m, int r)
         j++; 
         k++; 
     } 
-    printf("Merge is eunning!\n");
+    printf("Merge is running!\n");
 } 
