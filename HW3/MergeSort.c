@@ -5,6 +5,9 @@
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
+#include <sys/wait.h>
+#include<time.h> 
+
 
 void fillData(int a[], int);
 void mergeSort (int *, int l , int r);
@@ -38,6 +41,11 @@ int main()
 
     mergeSort(array ,1 , ARRAY_SIZE-1);
 
+
+    for (int i = 0; i < ARRAY_SIZE ; i++){
+        printf("%d ", array[i]);
+    }
+
     //detach from shared memory
     shmdt(array);
 
@@ -45,14 +53,14 @@ int main()
     shmctl(shmid,IPC_RMID,NULL); 
 
 
-
     return 0;
 }
 
 void fillData(int a[], int len) 
 { 
+    srand(time(0));
 	// Create random arrays 
-	int i; 
+    int i; 
 	for (i=0; i<len; i++) 
 		a[i] = rand()%300; 
 	return; 
