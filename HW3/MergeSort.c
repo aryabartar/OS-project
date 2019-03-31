@@ -39,7 +39,7 @@ int main()
 
     fillData(array, ARRAY_SIZE) ;
 
-    mergeSort(array ,1 , ARRAY_SIZE-1);
+    mergeSort(array ,0 , ARRAY_SIZE-1);
 
 
     for (int i = 0; i < ARRAY_SIZE ; i++){
@@ -63,6 +63,7 @@ void fillData(int a[], int len)
     int i; 
 	for (i=0; i<len; i++) 
 		a[i] = rand()%300; 
+
 	return; 
 } 
 
@@ -109,7 +110,7 @@ void mergeSort (int *array, int l , int r)
 	int status; 
 
     // Wait for child processes to finish 
-	waitpid(lfork_status,0, 0); 
+	waitpid(lfork_status, 0, 0); 
 	waitpid(rfork_status, 0, 0); 
     
     merge(array , l , l+array_length/2 -1 , r);
