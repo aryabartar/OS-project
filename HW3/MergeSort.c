@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h> 
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
@@ -10,7 +11,7 @@ void mergeSort (int *, int l , int r);
 
 int main()
 {
-    const int ARRAY_SIZE = 1000;
+    const int ARRAY_SIZE = 5;
     
 
     int shmid;
@@ -33,7 +34,8 @@ int main()
     int *array = (int*) shmat(shmid,(void*)0,0);
 
     fillData(array, ARRAY_SIZE) ;
-    printf("%d\n%d\n%d\n" , array[0], array[100] , array[999]);
+
+    mergeSort(array ,1 , ARRAY_SIZE-1);
 
     //detach from shared memory
     shmdt(array);
@@ -57,25 +59,41 @@ void fillData(int a[], int len)
 void mergeSort (int *array, int l , int r)
 {
     int array_length = r-l+1;
-    
-    if (r == l)
+    printf("l is %d| r is %d\n" , l , r);
+    if (r <= l)
     {
         return; 
     }
 
     int lfork_status, rfork_status;
     lfork_status = fork();
+    printf ("Left forked\n");
 
     if (lfork_status < 0)
     {
         perror("Error while making left fork.");
         exit(-1);
     } 
-    else if (lfork_status == 0) 
+    else if (lfork_status == 0) //this is child
     {
-        mergeSort(array, l , array_length/2);
-
+        mergeSort(array, l , l+array_length/2);
+        exit(0);
     }
+    else  // parent 
+    {
+        rfork_status = fork();
+        printf ("Right forked\n");
 
+        if (rfork_status < 0)
+        {
+            perror("Error while making right fork.");
+            exit(-1);
+        } 
+        else if (rfork_status == 0) //this is child
+        {
+            mergeSort(array, l+array_length/2 + 1 , r);
+            exit(0);
+        }
+    }
     
 }
