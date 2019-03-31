@@ -13,13 +13,13 @@ void mergeSort(int *, int l, int r);
 void merge(int array[], int, int, int);
 void printArray (int array[] , int size);
 
-const int M = 200;
+int M = 1;
 
-int main()
+int main(int argc, char *argv[])
 {
     clock_t begin = clock();
 
-    const int ARRAY_SIZE = 1000;
+    const int ARRAY_SIZE = 10000;
 
     int shmid;
     key_t key;
@@ -45,7 +45,7 @@ int main()
 
     mergeSort(array, 0, ARRAY_SIZE - 1);
 
-    printArray(array , ARRAY_SIZE);
+    // printArray(array , ARRAY_SIZE);
 
     //detach from shared
     shmdt(array);
@@ -56,7 +56,6 @@ int main()
     clock_t end = clock();
     double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
     printf("Total run time is: %f \n", time_spent);
-
     return 0;
 }
 
