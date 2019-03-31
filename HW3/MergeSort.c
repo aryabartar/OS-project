@@ -6,6 +6,7 @@
 #include <sys/shm.h>
 
 void fillData(int a[], int);
+void mergeSort (int *, int l , int r);
 
 int main()
 {
@@ -52,3 +53,29 @@ void fillData(int a[], int len)
 		a[i] = rand()%300; 
 	return; 
 } 
+
+void mergeSort (int *array, int l , int r)
+{
+    int array_length = r-l+1;
+    
+    if (r == l)
+    {
+        return; 
+    }
+
+    int lfork_status, rfork_status;
+    lfork_status = fork();
+
+    if (lfork_status < 0)
+    {
+        perror("Error while making left fork.");
+        exit(-1);
+    } 
+    else if (lfork_status == 0) 
+    {
+        mergeSort(array, l , array_length/2);
+
+    }
+
+    
+}
