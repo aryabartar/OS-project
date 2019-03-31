@@ -60,7 +60,7 @@ void mergeSort (int *array, int l , int r)
 {
     int array_length = r-l+1;
     printf("l is %d| r is %d\n" , l , r);
-    if (r <= l + 1)
+    if (r <= l )
     {
         return; 
     }
@@ -76,7 +76,7 @@ void mergeSort (int *array, int l , int r)
     } 
     else if (lfork_status == 0) //this is child
     {
-        mergeSort(array, l , l+array_length/2);
+        mergeSort(array, l , l+array_length/2 -1);
         exit(0);
     }
     else  // parent 
@@ -91,7 +91,7 @@ void mergeSort (int *array, int l , int r)
         } 
         else if (rfork_status == 0) //this is child
         {
-            mergeSort(array, l+array_length/2 + 1 , r);
+            mergeSort(array, l+array_length/2 , r);
             exit(0);
         }
     }
