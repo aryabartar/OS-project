@@ -1,3 +1,4 @@
+#include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -6,16 +7,18 @@
 #include <sys/ipc.h>
 #include <sys/shm.h>
 #include <sys/wait.h>
-#include <time.h>
 
 void fillData(int a[], int);
 void mergeSort(int *, int l, int r);
 void merge(int array[], int, int, int);
+void printArray (int array[] , int size);
 
-const int M = 5;
+const int M = 200;
 
 int main()
 {
+    clock_t begin = clock();
+
     const int ARRAY_SIZE = 1000;
 
     int shmid;
@@ -42,10 +45,7 @@ int main()
 
     mergeSort(array, 0, ARRAY_SIZE - 1);
 
-    for (int i = 0; i < ARRAY_SIZE; i++)
-    {
-        printf("%d ", array[i]);
-    }
+    printArray(array , ARRAY_SIZE);
 
     //detach from shared
     shmdt(array);
@@ -53,9 +53,19 @@ int main()
     // destroy the shared
     shmctl(shmid, IPC_RMID, NULL);
 
+    clock_t end = clock();
+    double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+    printf("Total run time is: %f \n", time_spent);
+
     return 0;
 }
 
+void printArray (int array[] , int size){
+    for (int i = 0; i < size; i++)
+    {
+        printf("%d ", array[i]);
+    }
+}
 void fillData(int a[], int len)
 {
     srand(time(0));
