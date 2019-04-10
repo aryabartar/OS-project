@@ -14,6 +14,7 @@ write_sockets = []
 
 group_message = None
 sockets_data = {}
+groups = {}
 
 
 def accept_wrapper(sock):
@@ -33,6 +34,22 @@ def accept_wrapper(sock):
 
 def set_socket_name(sock, name):
     sockets_data[s]["name"] = name
+
+
+def get_or_make_group(group_name):
+    group = groups.get(group_name, None)
+    if group is None:
+        groups[group_name] = {"members": []}
+        group = groups[group_name]
+    return group
+
+
+def join_group(group_name, sock):
+    group = get_or_make_group(group_name)
+    if sock in group['members']:
+        print("Already joined!")
+    else:
+        group['members'].append(sock)
 
 
 if len(sys.argv) != 3:
@@ -61,6 +78,8 @@ try:
 
                 if data.split(" ")[0] == "-SetName-":
                     set_socket_name(s, data.split(' ')[1])
+                elif data.split(" ")[0] == "join":
+                    join_group(s, data.split(' ')[1])
                 elif data:
                     message = sockets_data[s]["name"] + " says: " + data
                     group_message = message
