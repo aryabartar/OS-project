@@ -4,8 +4,13 @@ import sys
 import socket
 import selectors
 import types
+import time
+import select
 
 sel = selectors.DefaultSelector()
+
+read_sockets = []
+write_sockets = []
 
 
 def accept_wrapper(sock):
@@ -15,21 +20,31 @@ def accept_wrapper(sock):
     conn.setblocking(False)
     data = types.SimpleNamespace(addr=addr, inb=b"", outb=b"")
     events = selectors.EVENT_READ | selectors.EVENT_WRITE
+    read_sockets.append(conn)
+    write_sockets.append(conn)
     sel.register(conn, events, data=data)
 
 
 def service_connection(key, mask):
     sock = key.fileobj
     data = key.data
+    print(mask)
     if mask & selectors.EVENT_READ:
-        recv_data = sock.recv(1024)  # Should be ready to read
-        if recv_data:
-            data.outb += recv_data
-        else:
-            print("closing connection to", data.addr)
-            sel.unregister(sock)
-            sock.close()
-    
+        message = sock.recv(1024)
+        print(message)
+
+        # if message.decode() == "quit" :
+        #     print ("Closed connection.")
+        #     sel.unregister(sock)
+        #     sock.close()
+        # recv_data = sock.recv(1024)  # Should be ready to read
+        # if recv_data:
+        #     data.outb += recv_data
+        # else:
+        #     print("closing connection to", data.addr)
+        #     sel.unregister(sock)
+        #     sock.close()
+
     if mask & selectors.EVENT_WRITE:
         if data.outb:
             print("echoing", repr(data.outb), "to", data.addr)
@@ -47,16 +62,29 @@ lsock.bind((host, port))
 lsock.listen()
 print("listening on", (host, port))
 lsock.setblocking(False)
-sel.register(lsock, selectors.EVENT_READ, data=None)
+read_sockets.append(lsock)
 
 try:
     while True:
-        events = sel.select(timeout=None)
-        for key, mask in events:
-            if key.data is None:
-                accept_wrapper(key.fileobj)
+        time.sleep(.5)
+        (readable, writable, excetpional) = select.select(
+            read_sockets, write_sockets, read_sockets)
+        # print("\n\nRunning while")
+        # print(read_sockets)
+        # print("READABLE IS: ", readable)
+        # print("WRITABLE IS: ", writable)
+        # print("EXCEPTIONAL IS: ", excetpional)
+        for s in readable:
+            if s == lsock:
+                accept_wrapper(s)
             else:
-                service_connection(key, mask)
+                data = s.recv(1024)
+                if data:
+                    print("DATA IS: ", data)
+
+        for s in writable:
+            s.send("hello".encode())
+
 except KeyboardInterrupt:
     print("caught keyboard interrupt, exiting")
 finally:

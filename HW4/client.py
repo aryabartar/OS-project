@@ -5,8 +5,10 @@ import socket
 import selectors
 import types
 import threading
+import time
+import select
 
-message = "Hello world!"
+message = "quit"
 
 
 def start_connections(host, port, client_name):
@@ -19,11 +21,12 @@ def start_connections(host, port, client_name):
 
 
 def write(sock):
-    sock.send("hello".encode())
+    sock.sendall(message.encode())
 
 
 def read(sock):
-    print(sock.recv(1024))
+    message = sock.recv(1024)
+    print (message)
 
 
 if len(sys.argv) != 4:
@@ -33,21 +36,26 @@ if len(sys.argv) != 4:
 host, port, client_name = sys.argv[1:4]
 sock = start_connections(host, int(port), client_name)
 
-
 try:
-    write_thread = threading.Thread(
-        target=write, name="write_thread", args=(sock,))
-    # read_thread = threading.Thread(
-    #     target=read, name="read_thread", args=(sock,))
+    write(sock)
+    while True:
+        (readable, writable, excetpional) = select.select([sock], [sock], [sock])
+        # print("\n\nRunning while")
+        # print("READABLE IS: ", readable)
+        # print("WRITABLE IS: ", writable)
+        # print("EXCEPTIONAL IS: ", excetpional)
+        
+        for s in readable:
+            read(s)
 
-    write_thread.start()
-    # read_thread.start()
+        for s in writable:
+            write(s)
 
-    write_thread.join()
-    # read_thread.join()
+        time.sleep(.5)
 
 except KeyboardInterrupt:
     print("caught keyboard interrupt, exiting")
 finally:
     print("Closing connection!")
+    time.sleep(.2)
     sock.close()
