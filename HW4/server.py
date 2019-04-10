@@ -21,9 +21,7 @@ def accept_wrapper(sock):
 def service_connection(key, mask):
     sock = key.fileobj
     data = key.data
-    print ("Mask: " , mask, " |EVENT_READ: " , selectors.EVENT_READ , " |EVENT_WRITE: ", selectors.EVENT_WRITE)
     if mask & selectors.EVENT_READ:
-        print("READ_EVENT")
         recv_data = sock.recv(1024)  # Should be ready to read
         if recv_data:
             data.outb += recv_data
@@ -32,9 +30,7 @@ def service_connection(key, mask):
             sel.unregister(sock)
             sock.close()
     
-    print (data)
     if mask & selectors.EVENT_WRITE:
-        print("WRITE_EVENT")
         if data.outb:
             print("echoing", repr(data.outb), "to", data.addr)
             sent = sock.send(data.outb)  # Should be ready to write
@@ -55,9 +51,7 @@ sel.register(lsock, selectors.EVENT_READ, data=None)
 
 try:
     while True:
-        print("\n\nRunning true while")
         events = sel.select(timeout=None)
-        print(events)
         for key, mask in events:
             if key.data is None:
                 accept_wrapper(key.fileobj)
