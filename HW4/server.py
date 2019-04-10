@@ -66,9 +66,7 @@ read_sockets.append(lsock)
 
 try:
     while True:
-        time.sleep(.5)
-        (readable, writable, excetpional) = select.select(
-            read_sockets, write_sockets, read_sockets)
+        (readable, writable, excetpional) = select.select(read_sockets, write_sockets, read_sockets)
         # print("\n\nRunning while")
         # print(read_sockets)
         # print("READABLE IS: ", readable)
@@ -82,8 +80,8 @@ try:
                 if data:
                     print("DATA IS: ", data)
 
-        for s in writable:
-            s.send("hello".encode())
+        # for s in writable:
+        #     s.send("hello".encode())
 
 except KeyboardInterrupt:
     print("caught keyboard interrupt, exiting")
