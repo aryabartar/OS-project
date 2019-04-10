@@ -12,6 +12,8 @@ sel = selectors.DefaultSelector()
 read_sockets = []
 write_sockets = []
 
+group_message = None
+
 
 def accept_wrapper(sock):
     conn, addr = sock.accept()  # Should be ready to read
@@ -23,33 +25,6 @@ def accept_wrapper(sock):
     read_sockets.append(conn)
     write_sockets.append(conn)
     sel.register(conn, events, data=data)
-
-
-def service_connection(key, mask):
-    sock = key.fileobj
-    data = key.data
-    print(mask)
-    if mask & selectors.EVENT_READ:
-        message = sock.recv(1024)
-        print(message)
-
-        # if message.decode() == "quit" :
-        #     print ("Closed connection.")
-        #     sel.unregister(sock)
-        #     sock.close()
-        # recv_data = sock.recv(1024)  # Should be ready to read
-        # if recv_data:
-        #     data.outb += recv_data
-        # else:
-        #     print("closing connection to", data.addr)
-        #     sel.unregister(sock)
-        #     sock.close()
-
-    if mask & selectors.EVENT_WRITE:
-        if data.outb:
-            print("echoing", repr(data.outb), "to", data.addr)
-            sent = sock.send(data.outb)  # Should be ready to write
-            data.outb = data.outb[sent:]
 
 
 if len(sys.argv) != 3:
@@ -67,23 +42,22 @@ read_sockets.append(lsock)
 try:
     while True:
         (readable, writable, excetpional) = select.select(read_sockets, write_sockets, read_sockets)
-        # print("\n\nRunning while")
-        # print(read_sockets)
-        # print("READABLE IS: ", readable)
-        # print("WRITABLE IS: ", writable)
-        # print("EXCEPTIONAL IS: ", excetpional)
+
+        # Readable sockets
         for s in readable:
             if s == lsock:
                 accept_wrapper(s)
             else:
-                data = s.recv(1024)
+                data = s.recv(1024).decode()
                 if data:
-                    print("DATA IS: ", data)
+                    group_message = data
 
-        # for s in writable:
-        #     s.send("hello".encode())
+        # Writable sockets
+        if s != [] and group_message is not None:
+            for s in writable:
+                s.send(group_message.encode())
+            group_message = None
 
 except KeyboardInterrupt:
     print("caught keyboard interrupt, exiting")
-finally:
     sel.close()

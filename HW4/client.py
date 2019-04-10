@@ -25,13 +25,13 @@ def write(sock , message):
 
 
 def read(sock):
-    message = sock.recv(1024)
+    message = sock.recv(1024).decode()
     print ("Recieved message is:", message)
 
 def get_user_message():
     global user_message
     while True:
-        user_message = input("->")
+        user_message = input()
 
 if len(sys.argv) != 4:
     print("usage:", sys.argv[0], "<host> <port> <client_name>")
@@ -45,11 +45,7 @@ try:
     input_thread.start()
     while True:
         (readable, writable, excetpional) = select.select([sock], [sock], [sock])
-        # print("\n\nRunning while")
-        # print("READABLE IS: ", readable)
-        # print("WRITABLE IS: ", writable)
-        # print("EXCEPTIONAL IS: ", excetpional)
-        
+
         for s in readable:
             read(s)
 
@@ -61,7 +57,6 @@ try:
 
 except KeyboardInterrupt:
     print("caught keyboard interrupt, exiting")
-finally:
     print("Closing connection!")
-    time.sleep(.2)
     sock.close()
+
