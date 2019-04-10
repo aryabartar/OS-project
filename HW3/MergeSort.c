@@ -19,7 +19,7 @@ int main(int argc, char *argv[])
 {
     clock_t begin = clock();
 
-    const int ARRAY_SIZE = 10000;
+    const int ARRAY_SIZE = 1000;
 
     int shmid;
     key_t key;
@@ -41,11 +41,12 @@ int main(int argc, char *argv[])
     // shmat to attach to shared
     int *array = (int *)shmat(shmid, (void *)0, 0);
 
+    int array[ARRAY_SIZE];
     fillData(array, ARRAY_SIZE);
 
     mergeSort(array, 0, ARRAY_SIZE - 1);
 
-    // printArray(array , ARRAY_SIZE);
+    printArray(array , ARRAY_SIZE);
 
     //detach from shared
     shmdt(array);
