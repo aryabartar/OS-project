@@ -23,7 +23,7 @@ def read(sock):
         sock.close()
         quit()
         sys.exit(0)
-    
+
     print(message)
 
 
@@ -33,14 +33,16 @@ def start_connections(host, port, client_name):
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.setblocking(False)
     sock.connect_ex(server_addr)
+    time.sleep(2)
     write(sock, "-SetName- {}".format(client_name))
     return sock
 
 
-def get_user_message():
+def get_user_message(sock):
     global user_message
     while True:
         user_message = input()
+        write(sock, user_message)
 
 
 if len(sys.argv) != 4:
@@ -52,12 +54,12 @@ sock = start_connections(host, int(port), client_name)
 
 try:
     input_thread = threading.Thread(
-        target=get_user_message, name="get_input_thread")
+        target=get_user_message, name="get_input_thread", args=(sock,))
     input_thread.daemon = True
     input_thread.start()
     while True:
         (readable, writable, excetpional) = select.select(
-            [sock], [sock], [sock])
+            [sock], [], [sock])
 
         for s in readable:
             read(s)
@@ -68,6 +70,6 @@ try:
                 user_message = None
 
 
-except :
+except:
     print("Closing connection!")
     sock.close()
