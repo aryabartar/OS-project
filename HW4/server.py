@@ -12,7 +12,6 @@ sel = selectors.DefaultSelector()
 read_sockets = []
 write_sockets = []
 
-group_message = None
 sockets_data = {}
 groups = {}
 
@@ -39,7 +38,7 @@ def set_socket_name(sock, name):
 def get_or_make_group(group_name):
     group = groups.get(group_name, None)
     if group is None:
-        groups[group_name] = {"members": []}
+        groups[group_name] = {"members": [], "message": None}
         group = groups[group_name]
     return group
 
@@ -62,10 +61,42 @@ def leave_group(group_name, sock):
         member_index = group['members'].index(sock)
     except ValueError:
         raise ValueError(
-            "This user is not a member of {group_name} group.".format(group_name=group_name)
+            "This user is not a member of {group_name} group.".format(
+                group_name=group_name)
         )
     del(group['members'][member_index])
 
+
+def check_user_permission(group_name, sock):
+    group = groups.get(group_name, None)
+    if group is None:
+        raise ValueError(
+            "Group {group_name} is not available.".format(group_name=group_name))
+
+    try:
+        member_index = group['members'].index(sock)
+    except ValueError:
+        raise ValueError(
+            "This user is not a member of {group_name} group.".format(
+                group_name=group_name)
+        )
+
+
+def send_group_message(group_name, group_message):
+    group = groups.get(group_name, None)
+    if group is None:
+        raise ValueError(
+            "Group {group_name} is not available.".format(
+                group_name=group_name)
+        )
+    group['message'] = group_message
+
+def get_unsend_groups():
+    unsend_groups = []
+    for key, value in groups:
+        if value['message'] is not None:
+            unsend_groups.append(key)
+    return unsend_groups
 
 if len(sys.argv) != 3:
     print("usage:", sys.argv[0], "<host> <port>")
@@ -106,15 +137,32 @@ try:
                     except ValueError as err:
                         s.send(str(err).encode())
 
-                elif data:
+                elif data.split(' ')[0] == "send":
+                    group_name = data.split(' ')[1]
+                    try:
+                        goup_name = data.split(' ')[1]
+                        check_user_permission(group_name, s)
+
+                        group_message = data.split(' ')[2:]
+                        send_group_message(group_name, group_message)
+
+                    except ValueError as err:
+                        s.send(str(err).encode())
+
                     message = sockets_data[s]["name"] + " says: " + data
                     group_message = message
 
         # Writable sockets
-        if s != [] and group_message is not None:
-            for s in writable:
-                s.send(group_message.encode())
-            group_message = None
+        if writable != []:
+            unsend_groups = get_unsend_groups()
+            for group in unsend_groups:
+                print ('UNSEND GROUPS' , unsend_groups)
+                members = group['members']
+                for member in members:
+                    if member in writable:
+                        member.send(group['message'].encode())
+                group['message'] = None
+
 
 except KeyboardInterrupt:
     print("caught keyboard interrupt, exiting")
