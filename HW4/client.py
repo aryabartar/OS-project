@@ -19,6 +19,7 @@ def read(sock):
     message = sock.recv(1024).decode()
     print(message)
     if message == '-quit-':
+        time.sleep(.3)
         quit()
         sys.exit(0)
 
