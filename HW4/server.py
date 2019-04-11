@@ -47,9 +47,24 @@ def get_or_make_group(group_name):
 def join_group(group_name, sock):
     group = get_or_make_group(group_name)
     if sock in group['members']:
-        print("Already joined!")
+        raise ValueError("This member is already joined to {group_name} group.".format(
+            group_name=group_name))
     else:
         group['members'].append(sock)
+
+
+def leave_group(group_name, sock):
+    group = groups.get(group_name, None)
+    if group is None:
+        raise ValueError(
+            "Group {group_name} is not available.".format(group_name=group_name))
+    try:
+        member_index = group['members'].index(sock)
+    except ValueError:
+        raise ValueError(
+            "This user is not a member of {group_name} group.".format(group_name=group_name)
+        )
+    del(group['members'][member_index])
 
 
 if len(sys.argv) != 3:
@@ -78,8 +93,19 @@ try:
 
                 if data.split(" ")[0] == "-SetName-":
                     set_socket_name(s, data.split(' ')[1])
+
                 elif data.split(" ")[0] == "join":
-                    join_group(s, data.split(' ')[1])
+                    try:
+                        join_group(data.split(' ')[1], s)
+                    except ValueError as err:
+                        s.send(str(err).encode())
+
+                elif data.split(" ")[0] == "leave":
+                    try:
+                        leave_group(data.split(' ')[1], s)
+                    except ValueError as err:
+                        s.send(str(err).encode())
+
                 elif data:
                     message = sockets_data[s]["name"] + " says: " + data
                     group_message = message

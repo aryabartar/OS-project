@@ -49,7 +49,7 @@ try:
     input_thread.start()
     while True:
         (readable, writable, excetpional) = select.select(
-            [sock], [sock], [sock])
+            [sock], [sock], [sock] )
 
         for s in readable:
             read(s)
