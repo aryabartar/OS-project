@@ -91,12 +91,22 @@ def send_group_message(group_name, group_message):
         )
     group['message'] = group_message
 
+
 def get_unsend_groups():
     unsend_groups = []
-    for key, value in groups:
+    for key in groups.keys():
+        value = groups[key]
         if value['message'] is not None:
-            unsend_groups.append(key)
+            unsend_groups.append(value)
     return unsend_groups
+
+
+def make_list_string(li):
+    temp_str = ""
+    for item in li:
+        temp_str += item + " "
+    return temp_str
+
 
 if len(sys.argv) != 3:
     print("usage:", sys.argv[0], "<host> <port>")
@@ -112,9 +122,8 @@ read_sockets.append(lsock)
 
 try:
     while True:
-        (readable, writable, excetpional) = select.select(
-            read_sockets, write_sockets, read_sockets)
-
+        (readable, nothing, excetpional) = select.select(
+            read_sockets, [], read_sockets)
         # Readable sockets
         for s in readable:
             if s == lsock:
@@ -126,25 +135,36 @@ try:
                     set_socket_name(s, data.split(' ')[1])
 
                 elif data.split(" ")[0] == "join":
+                    user_name = sockets_data[s]['name']
+                    group_name = data.split(' ')[1]
                     try:
                         join_group(data.split(' ')[1], s)
+                        send_group_message(data.split(' ')[1],
+                                           "{user_name} joined {group_name} group.".format(user_name=user_name, group_name=group_name))
                     except ValueError as err:
                         s.send(str(err).encode())
 
                 elif data.split(" ")[0] == "leave":
+                    user_name = sockets_data[s]['name']
+                    group_name = data.split(' ')[1]
                     try:
                         leave_group(data.split(' ')[1], s)
+                        send_group_message(data.split(' ')[1],
+                                           "{user_name} left {group_name} group.".format(user_name=user_name, group_name=group_name))
                     except ValueError as err:
                         s.send(str(err).encode())
 
                 elif data.split(' ')[0] == "send":
                     group_name = data.split(' ')[1]
+                    user_name = sockets_data[s]['name']
                     try:
                         goup_name = data.split(' ')[1]
                         check_user_permission(group_name, s)
 
                         group_message = data.split(' ')[2:]
-                        send_group_message(group_name, group_message)
+                        group_message_string = "[gp: {group_name}]-{user_name}: ".format(
+                            group_name=group_name, user_name=user_name) + make_list_string(group_message)
+                        send_group_message(group_name, group_message_string)
 
                     except ValueError as err:
                         s.send(str(err).encode())
@@ -152,11 +172,12 @@ try:
                     message = sockets_data[s]["name"] + " says: " + data
                     group_message = message
 
+        (nothing, writable, excetpional) = select.select(
+            [], write_sockets, read_sockets)
         # Writable sockets
         if writable != []:
             unsend_groups = get_unsend_groups()
             for group in unsend_groups:
-                print ('UNSEND GROUPS' , unsend_groups)
                 members = group['members']
                 for member in members:
                     if member in writable:
