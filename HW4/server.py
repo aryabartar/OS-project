@@ -18,8 +18,6 @@ groups = {}
 
 def accept_wrapper(sock):
     conn, addr = sock.accept()  # Should be ready to read
-    print(conn)
-    print("accepted connection from", addr)
     conn.setblocking(False)
     data = types.SimpleNamespace(addr=addr, inb=b"", outb=b"")
     events = selectors.EVENT_READ | selectors.EVENT_WRITE
@@ -108,6 +106,13 @@ def make_list_string(li):
     return temp_str
 
 
+def remove_from_groups(sock):
+    for key in groups.keys():
+        value = groups[key]
+        if s in value['members']:
+            value['members'].remove(sock)
+
+
 if len(sys.argv) != 3:
     print("usage:", sys.argv[0], "<host> <port>")
     sys.exit(1)
@@ -133,6 +138,8 @@ try:
 
                 if data.split(" ")[0] == "-SetName-":
                     set_socket_name(s, data.split(' ')[1])
+                    print("{user_name} connected to server.".format(
+                        user_name=data.split(' ')[1]))
 
                 elif data.split(" ")[0] == "join":
                     user_name = sockets_data[s]['name']
@@ -153,6 +160,17 @@ try:
                                            "{user_name} left {group_name} group.".format(user_name=user_name, group_name=group_name))
                     except ValueError as err:
                         s.send(str(err).encode())
+
+                elif data.split(' ')[0] == 'quit':
+                    user_name = sockets_data[s]['name']
+                    s.send("-quit-".encode())
+                    time.sleep(0.01)
+                    remove_from_groups(s)
+                    read_sockets.remove(s)
+                    write_sockets.remove(s)
+                    s.close()
+                    print("{user_name} left the server.".format(
+                        user_name=user_name))
 
                 elif data.split(' ')[0] == "send":
                     group_name = data.split(' ')[1]

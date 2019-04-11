@@ -18,6 +18,9 @@ def write(sock, message):
 def read(sock):
     message = sock.recv(1024).decode()
     print(message)
+    if message == '-quit-':
+        quit()
+        sys.exit(0)
 
 
 def start_connections(host, port, client_name):
@@ -46,6 +49,7 @@ sock = start_connections(host, int(port), client_name)
 try:
     input_thread = threading.Thread(
         target=get_user_message, name="get_input_thread")
+    input_thread.daemon = True
     input_thread.start()
     while True:
         (readable, writable, excetpional) = select.select(
