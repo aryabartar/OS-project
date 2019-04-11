@@ -108,15 +108,15 @@ def remove_from_groups(sock):
             value['members'].remove(sock)
 
 
-if len(sys.argv) != 3:
-    print("usage:", sys.argv[0], "<host> <port>")
+if len(sys.argv) != 2:
+    print("usage:", sys.argv[0], "<port>")
     sys.exit(1)
 
-host, port = sys.argv[1], int(sys.argv[2])
+host, port = '', int(sys.argv[1])
 lsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 lsock.bind((host, port))
 lsock.listen()
-print("listening on", (host, port))
+print("listening on port:", port)
 lsock.setblocking(False)
 read_sockets.append(lsock)
 
@@ -204,5 +204,5 @@ try:
 
 
 except :
-    print("caught keyboard interrupt, exiting")
+    print("caught keyboard interrupt, exiting. Bye Bye")
     lsock.close()

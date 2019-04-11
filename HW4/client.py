@@ -17,11 +17,14 @@ def write(sock, message):
 
 def read(sock):
     message = sock.recv(1024).decode()
-    print(message)
     if message == '-quit-':
+        print("bye bye :D ")
         time.sleep(.3)
+        sock.close()
         quit()
         sys.exit(0)
+    
+    print(message)
 
 
 def start_connections(host, port, client_name):
@@ -54,7 +57,7 @@ try:
     input_thread.start()
     while True:
         (readable, writable, excetpional) = select.select(
-            [sock], [sock], [sock] )
+            [sock], [sock], [sock])
 
         for s in readable:
             read(s)
@@ -65,7 +68,6 @@ try:
                 user_message = None
 
 
-except KeyboardInterrupt:
-    print("caught keyboard interrupt, exiting")
+except :
     print("Closing connection!")
     sock.close()
