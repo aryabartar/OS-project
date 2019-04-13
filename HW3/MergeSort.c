@@ -41,7 +41,6 @@ int main(int argc, char *argv[])
     // shmat to attach to shared
     int *array = (int *)shmat(shmid, (void *)0, 0);
 
-    int array[ARRAY_SIZE];
     fillData(array, ARRAY_SIZE);
 
     mergeSort(array, 0, ARRAY_SIZE - 1);
@@ -56,7 +55,7 @@ int main(int argc, char *argv[])
 
     clock_t end = clock();
     double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
-    printf("Total run time is: %f \n", time_spent);
+    printf("\nTotal run time is: %f \n", time_spent);
     return 0;
 }
 
