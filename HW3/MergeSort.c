@@ -13,13 +13,13 @@ void mergeSort(int *, int l, int r);
 void merge(int array[], int, int, int);
 void printArray (int array[] , int size);
 
-int M = 1;
+int M = 100;
 
 int main(int argc, char *argv[])
 {
     clock_t begin = clock();
 
-    const int ARRAY_SIZE = 1000;
+    const int ARRAY_SIZE = 10000;
 
     int shmid;
     key_t key;
@@ -71,7 +71,7 @@ void fillData(int a[], int len)
     // Create random arrays
     int i;
     for (i = 0; i < len; i++)
-        a[i] = rand() % 300;
+        a[i] = rand() % 1000;
 
     return;
 }
